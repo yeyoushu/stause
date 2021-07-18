@@ -1,0 +1,499 @@
+<template>
+  <div>
+         <el-breadcrumb separator-class="el-icon-arrow-right" style=" line-height: 20px;margin-bottom: 20px;">
+  <el-breadcrumb-item :to="{ path: '/' }">销售管理</el-breadcrumb-item>
+  <el-breadcrumb-item :to="{ path: '/sales' }">新添销售单</el-breadcrumb-item>
+  <el-breadcrumb-item>销售单编辑</el-breadcrumb-item>
+</el-breadcrumb>
+    <div class="place">
+      <el-button type="info" class="placere" @click="additems()"
+        >添加明细</el-button
+      >
+      <el-button type="info" class="placeres" @click="additemss()"
+        ><span>保存</span></el-button
+      >
+    </div>
+    <!--  -->
+    <!--  -->
+    <el-form
+      :inline="true"
+      :model="pomain"
+      class="demo-form-inline"
+      size="mini"
+      :rules="rules"
+    >
+      <div class="demo">
+        <el-form-item label="销售单编号" prop="soId">
+          <el-input v-model="pomain.soId" placeholder="不能为空"></el-input>
+        </el-form-item>
+
+        <el-form-item label="创建时间">
+          <el-input
+            v-model="pomain.createTime"
+            placeholder="不能为空"
+          ></el-input>
+        </el-form-item>
+        <el-form-item label="客户编号" prop="customerCode">
+          <el-select
+            v-model="pomain.customerCode"
+            placeholder="请选择供应商"
+            class="lablewidth"
+            @change="getTypeSelected"
+          >
+            <el-option
+              v-for="(item, index) in product"
+              :key="index"
+              :label="item.name"
+              :value="item.customerCode"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+      </div>
+      <div class="demo">
+        <el-form-item label="创建用户">
+          <el-input
+            v-model="pomain.account"
+            placeholder="登录的用户"
+          ></el-input>
+        </el-form-item>
+        <el-form-item label="附加费用" prop="tipFee">
+          <el-input v-model="pomain.tipFee" placeholder="0">0</el-input>
+        </el-form-item>
+        <el-form-item label="产品总价" prop="productTotal">
+          <el-input
+            v-model="pomain.productTotal"
+            placeholder="不能为负数"
+          ></el-input>
+        </el-form-item>
+      </div>
+      <div class="demo">
+        <el-form-item label="付款方式">
+          <el-select
+            v-model="pomain.payType"
+            placeholder="请选择付款方式"
+            class="lablewidth"
+          >
+            <el-option label="货到付款" value="1"></el-option>
+            <el-option label="款到发货" value="2"></el-option>
+            <el-option label="预付款到发货" value="3"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="最低预付款金额" prop="prePayFee">
+          <el-input
+            v-model="pomain.prePayFee"
+            placeholder="不能为负数"
+          ></el-input>
+        </el-form-item>
+        <el-form-item label="销售单状态">
+          <el-select
+            v-model="pomain.status"
+            placeholder="请选择采购单状态"
+            class="lablewidth"
+          >
+            <el-option label="新增" value="1"></el-option>
+            <el-option label="已收货" value="2"></el-option>
+            <el-option label="已付款" value="3"></el-option>
+            <el-option label="已了结" value="4"></el-option>
+            <el-option label="已预付" value="5"></el-option>
+          </el-select>
+        </el-form-item>
+      </div>
+        <span style="display:none">
+          
+            {{pomain.soTotal= parseInt(pomain.productTotal)+parseInt(pomain.tipFee)}}
+            </span>
+      <div class="ssdww">
+        <el-form-item label="销售单总价" prop="soTotal">
+          <el-input
+            v-model="pomain.soTotal"
+            placeholder="不能为负数"
+          ></el-input>
+        </el-form-item>
+      </div>
+    </el-form>
+    <!-- 产品明细开始 -->
+    <el-form ref="form" :inline="true" label-width="80px">
+      <div class="display">
+        <span>产品编号</span> <span>产品单价</span><span>产品数量</span
+        ><span>数量单位</span><span>明细总价</span><span>添加明细</span>
+      </div>
+
+      <div v-for="(item, index) in pomain.soitems" :key="index" class="sdsasd">
+        <el-form-item
+          :prop="'soitems.' + index + '.productCode'"
+          class="sdsasda"
+        >
+          <el-input v-model="item.productCode"></el-input>
+        </el-form-item>
+        <el-form-item :prop="'soitems.' + index + '.unitPrice'" class="sdsasda"  >
+          <el-input v-model="item.unitPrice"  @change="t"></el-input>
+        </el-form-item>
+        <el-form-item :prop="'soitems.' + index + '.num'" class="sdsasda"  >
+          <el-input v-model="item.num"  @change="t"></el-input>
+        </el-form-item>
+        <el-form-item :prop="'soitems.' + index + '.unitName'" class="sdsasda">
+          <el-input v-model="item.unitName"></el-input>
+        </el-form-item>
+        <!-- ******* -->
+        <el-form-item :prop="'soitems.' + index + '.itemPrice'" class="sdsasda">
+            <span style="display:none">
+
+            {{item.itemPrice=item.unitPrice*item.num}}
+            </span>
+          <el-input
+           v-model="item.itemPrice"
+          
+          ></el-input>
+        </el-form-item>
+        <el-button type="info" @click="dialogFormVisible = true" class="places"
+          ><span>添加</span></el-button
+        >
+        <el-form-item>
+          <el-button @click="deleteItem(item, index)" type="danger"
+            >删除</el-button
+          >
+        </el-form-item>
+      </div>
+    </el-form>
+    <!-- 添加明细开始 -->
+    <el-dialog title="添加销售单明细" :visible.sync="dialogFormVisible">
+      <el-table :data="arr" style="width: 100%">
+        <el-table-column label="产品编号" width="150">
+          <template slot-scope="scope">
+            <span style="margin-left: 10px">{{ scope.row.productCode }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="产品单价" width="150">
+          <template slot-scope="scope">
+            <i class="el-icon-view"></i>
+            <span style="margin-left: 10px">{{ scope.row.price }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="产品单位" width="150">
+          <template slot-scope="scope">
+            <span style="margin-left: 10px">{{ scope.row.unitName }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="产品数量" width="150">
+          <template slot-scope="scope">
+            <span style="margin-left: 10px">{{ scope.row.num}}</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="操作" width="150">
+          <template slot-scope="scope">
+            <el-button size="mini" @click="handleEdit(scope.$index, scope.row)"
+              >选择</el-button
+            >
+          </template>
+        </el-table-column>
+      </el-table>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button type="primary" @click="dialogFormVisible = false"
+          >确 定</el-button
+        >
+      </div>
+    </el-dialog>
+  </div>
+</template>
+<script>
+import axios from "axios";
+const querystring = require("querystring");
+export default {
+  data() {
+    return {
+      currentIndex: -1, //当前添加的明细行
+      dialogFormVisible: false, //对话框显示和隐藏
+      product: [], //供应商
+      arr: [], //对话框选择的产品
+
+      pomain: {
+        soId: "",
+        customerCode: "",
+        account: localStorage.getItem("mess"),
+        createTime: this.getTime(),
+        tipFee: "",
+        productTotal: "",
+        soTotal: "",
+        payType: "1",
+        status: "1",
+        prePayFee: "",
+        soitems: [
+          // {
+          //   productCode: "",
+          //   unitPrice: "",
+          //   num: "",
+          //   unitName: "",
+          //   itemPrice: "",
+          // },
+        ],
+      },
+      rules: {
+passWord : [
+          {
+            pattern: /^\d{4,10}$/,
+            required: true,
+            message: "请输入4~10位数字字母例如1001",
+            trigger: "blur",
+          },
+        ],
+        name: [
+          {
+            pattern: /^[\u4e00-\u9fa5]{0,}$/,
+            required: true,
+            trigger: "blur",
+            message: "长度不超过100",
+          },
+        ],
+soId : [
+          {
+            pattern: /^\d{0,}$/,
+            required: true,
+            trigger: "blur",
+            message:"唯一不能为空",
+          },
+        ],
+customerCode: [
+          {
+            pattern: /^\d{0,}$/,
+            required: true,
+            trigger: "blur",
+            message: "不能为空",
+          },
+        ],
+tipFee: [
+          {
+            pattern: /^[1-9]{0,}\d||^[1-9]\.{0,}\d*$/,
+            required: true,
+            trigger: "blur",
+            message: "附加费用不能为负数",
+          },
+        ],
+productTotal: [
+          {
+            pattern: /^[1-9]{0,}\d||^[1-9]\.{0,}\d*$/,
+            required: true,
+            trigger: "blur",
+            message: "产品总价不能为负数",
+          },
+        ],
+soTotal : [
+          {
+            pattern: /^[1-9]{0,}\d||^[1-9]\.{0,}\d*$/,
+            required: true,
+            trigger: "blur",
+            message: "采购总价不能为负数",
+          },
+        ],
+prePayFee  : [
+          {
+            pattern: /^[1-9]{0,}\d||^[1-9]\.{0,}\d*$/,
+            required: true,
+            trigger: "blur",
+            message: "附加不能为负数",
+          },
+        ],
+      },
+    };
+  },
+  
+  mounted() {
+    this.getMessageAll();
+    this.queryItem();
+    this. updata()
+    this.pomain = JSON.parse(this.$route.params.value);
+  },
+  methods: {
+      t(){
+      console.log("*******s********");
+      this.pomain.productTotal=0;
+      for(let i of this.pomain.soitems){
+        this.pomain.productTotal+=i.itemPrice;
+      }
+        console.log("*******e********");
+    
+      return this.pomain.productTotal;
+    },
+      updata() {
+      axios
+        .get("cgi/main/sell/somain/queryItem?soId=" + this.$route.params.id)
+        .then((value) => {
+          console.log(value.data);
+          this.pomain.soitems = value.data;
+        });
+    },
+      search(event){
+	          console.log(event.currentTarget.value)
+	        },
+    //   添加明细显示
+    additems() {
+      this.currentIndex++;
+
+      this.pomain.soitems.push({});
+    },
+    getTypeSelected() {
+      //获取选中的违规类型
+      console.log(this.pomain.customerCode);
+    },
+
+    addItem() {
+      this.pomain.soitems.push({
+        productCode: "",
+        unitPrice: "",
+        num: "",
+        unitName: "",
+        itemPrice: "",
+      });
+    },
+    queryItem() {
+      axios.get("/cgi/main/stock/query").then((value) => {
+        console.log(value.data.list);
+        this.arr = value.data.list;
+      });
+    },
+    // 显示影藏
+
+    getMessageAll() {
+      axios.get("/cgi/main/sell/customer/show").then((value) => {
+        console.log(value.data.list);
+        this.product = value.data.list;
+        // this.pomain.customerCode = value.data[0].customerCode;
+        console.log(this.pomain.customerCode);
+        console.log(this.product);
+      });
+    },
+    // 提交保存
+    additemss() {
+      let t = this.pomain.soitems;
+      for (let i = 0; i < t.length; i++) {
+        t[i].itemPrice = parseInt(t[i].unitPrice) * parseInt(t[i].num);}
+        // let c=pomain.poitems.itemPrice
+        // for (let y = 0; y < c.length; y++){
+        //  this.pomain.productTotal +=parseInt(c[i])
+         
+        // }
+         
+      axios({
+        url: "/cgi/main/sell/somain/update",
+        method: "post",
+        headers: { "Content-Type": "application/json" },
+        data: JSON.stringify(this.pomain),
+      }).then(response=> {
+        alert("保存状态" + response.data.message);
+      });
+      this.$router.replace("/sales");
+    },
+
+    sure(pomain) {
+      console.log(this.pomain.poitems.length, "length");
+      this.$refs[pomain].validate((valid) => {
+        if (valid) {
+          alert("submit!");
+        } else {
+          console.log("error submit!!");
+          return false;
+        }
+      });
+    },
+    handleEdit(index, row) {
+      console.log(index, row);
+      this.pomain.soitems[this.currentIndex] = row;
+      console.log(this.pomain.soitems[this.currentIndex]);
+    },
+    deleteItem(item, index) {
+      this.pomain.poitems.splice(index, 1);
+      console.log(this.pomain.poitems, "删除");
+    },
+
+    getTime() {
+      var now = new Date();
+      var year = now.getFullYear(); //得到年份
+      var month = now.getMonth(); //得到月份
+      var date = now.getDate(); //得到日期
+      var day = now.getDay(); //得到周几
+      var hour = now.getHours(); //得到小时
+      var minu = now.getMinutes(); //得到分钟
+      var sec = now.getSeconds(); //得到秒
+      month = month + 1;
+      if (month < 10) month = "0" + month;
+      if (date < 10) date = "0" + date;
+      if (hour < 10) hour = "0" + hour;
+      if (minu < 10) minu = "0" + minu;
+      if (sec < 10) sec = "0" + sec;
+      var time = "";
+      //精确到天
+      time =
+        year + "-" + month + "-" + date + " " + hour + ":" + minu + ":" + sec;
+      // return time;
+      console.log(time);
+      return time;
+    },
+  },
+};
+</script>
+<style >
+.place {
+  margin-left: 12px;
+  height: 50px;
+  line-height: 50px;
+  text-align: left;
+  font-size: 14px;
+  margin: 0;
+  margin-bottom: 6px;
+}
+.place .places {
+  background-color: rgb(216, 216, 216);
+}
+.place .places span {
+  color: rgb(63, 62, 62);
+  text-align: center;
+  margin-right: 6px;
+}
+.place:nth-of-type(2) {
+  background-color: #fff;
+}
+.place span {
+  font-weight: normal;
+  margin-left: 10px;
+}
+.lablewidth {
+  width: 186px;
+}
+.el-form-item__label {
+  width: 121px;
+}
+.demo {
+  text-align: center;
+}
+.productCode {
+  width: 120px;
+}
+.ssdww {
+  margin-left: 152px;
+}
+.display {
+  margin: auto;
+  border: solid 1px rgb(224, 224, 224);
+  height: 40px;
+}
+.display span {
+  width: 210px;
+  display: block;
+  float: left;
+  line-height: 40px;
+}
+.sdsasda {
+  width: 190px;
+}
+.sdsasda input {
+  width: 170px;
+  height: 32px;
+}
+
+.placeres {
+  background-color: rgb(247, 189, 151);
+  border: solid 1px rgb(247, 189, 151);
+  color: #000;
+}
+</style>
